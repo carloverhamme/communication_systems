@@ -103,3 +103,42 @@ function s = poly_str(bits)
         s = strjoin(terms, ' + ');
     end
 end
+%% 
+
+%-----------
+% PART 2b
+
+
+crc_enc = comm.CRCGenerator('Polynomial', crc_poly);
+crc_dec = comm.CRCDetector('Polynomial', crc_poly);
+
+% 2. Select an information vector (k = 2)
+% Example: v = [1; 0]
+v = [1; 0];
+c = crc_enc(v);  % Systematic codeword of length n = 2 + 5 = 7
+
+fprintf('--- Codeword ---\n');
+fprintf('Transmitted Codeword c: [%s]\n', num2str(c'));
+
+% 3. Define Error Patterns (column vectors of length 7)
+% e1: Burst of length L = 5 (indices 1 to 5) -> Guaranteed detected
+e1 = [1; 0; 0; 0; 1; 0; 0];
+
+% e2: Burst equal to g(D) of length L = 6 -> Undetected
+e2 = [1; 1; 0; 1; 0; 1; 0];
+
+% 4. Received vectors
+y1 = mod(c + e1, 2);
+y2 = mod(c + e2, 2);
+
+% 5. CRC Syndrome Detection
+[~, err1] = crc_dec(y1);
+[~, err2] = crc_dec(y2);
+
+fprintf('\n--- Detection Results ---\n');
+fprintf('e1 (Burst length 5): err = %d -> %s\n', err1, ternary(err1 == 1, 'DETECTED (Syndrome != 0)', 'UNDETECTED'));
+fprintf('e2 (Burst length 6): err = %d -> %s\n', err2, ternary(err2 == 1, 'DETECTED', 'UNDETECTED (Syndrome == 0)'));
+
+function out = ternary(cond, valTrue, valFalse)
+if cond, out = valTrue; else, out = valFalse; end
+end
