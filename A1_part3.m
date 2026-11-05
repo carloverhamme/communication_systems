@@ -51,8 +51,52 @@ for idx = 1:size(C, 1)
 end
 
 if all_valid
-    fprintf('D(c) = c + D(0) holds for all codewords!');
+    fprintf('D(c) = c + D(0) holds for all codewords');
 end
 
 %---------------
 % Part 3c
+% Question 1
+fprintf('\n\n------------ PART 3C -----------\n')
+C = [ 0  0  0  0 ;
+      1  1  0  0 ;
+      0  0  1  1 ;
+      1  0  1  0 ];
+
+n = size(C, 2);
+M = size(C, 1);
+
+% Question 2
+all_y = de2bi(0:(2^n - 1), n, 'left-msb');
+
+D = cell(M, 1);
+for i = 1:size(all_y, 1)
+    y = all_y(i, :);
+    dist = sum(xor(repmat(y, M, 1), C), 2);
+    min_dist = min(dist);
+    closest_idx = find(dist == min_dist); % for ties
+    for idx = closest_idx'
+        D{idx} = [D{idx}; y];
+    end
+end
+
+% Question 3
+for idx = 1:M
+    c = C(idx, :);
+    fprintf('=== Decision Region D(c_%d) for c = [%s] (Size = %d) ===\n', ...
+        idx-1, num2str(c), size(D{idx}, 1));
+    for r = 1:size(D{idx}, 1)
+        fprintf('   [%s]\n', num2str(D{idx}(r, :)));
+    end
+    fprintf('\n');
+end
+
+% Question 4
+D0 = D{1};
+for idx = 1:M
+    c = C(idx, :);
+    c_plus_D0 = mod(repmat(c, size(D0, 1), 1) + D0, 2);
+    holds = isequal(sortrows(D{idx}), sortrows(c_plus_D0));
+    fprintf('Codeword c_%d: D(c) == c + D(0)? %s (|D(c)| = %d, |c + D(0)| = %d)\n', ...
+        idx-1, string(holds), size(D{idx}, 1), size(c_plus_D0, 1));
+end
